@@ -1,0 +1,31 @@
+---
+services:
+
+  vocab:
+    container_name: vocab-service
+    build: .
+    ports:
+      - 8080:8080
+    networks:
+      - vonet
+    env_file:
+      - credentials.env
+
+  redis:
+    container_name: redisdb
+    image: ghcr.io/aut-cloud-computing-fall-2024/redis
+    ports:
+      - 6379:6379
+    volumes:
+      - redis-data:/data
+    networks:
+      - vonet
+
+volumes:
+  redis-data:
+
+networks:
+  vonet:
+    driver: bridge
+
+... 

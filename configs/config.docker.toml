@@ -1,0 +1,9 @@
+port = "8080"
+
+[english_api]
+connection_timeout = "20s"
+
+[cache]
+address = "redisdb:6379"
+connection_timeout = "5s"
+cache_timeout = "300s"

@@ -4,6 +4,7 @@ import (
 	"log"
 	"vocabsrv/internal/cache"
 	"vocabsrv/internal/config"
+	"vocabsrv/internal/monitor"
 	"vocabsrv/internal/service"
 	"vocabsrv/internal/vocab"
 
@@ -29,7 +30,11 @@ func main() {
 		cfg.Vocab.ConnectionTimeout,
 	)
 
-	al := service.NewVacabService(cfg.Port, *ninjas_client, *redisdb)
+	metrs := monitor.NewPromMetrics()
+	go metrs.Expose("/metrics", 9091)
+
+	al := service.NewVacabService(cfg.Port, *ninjas_client, *redisdb, *metrs)
+
 	err := al.Execute()
 	if err != nil {
 		log.Fatalf("could not start service1: %v\n", err)

@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"vocabsrv/internal/cache"
+	"vocabsrv/internal/monitor"
 	"vocabsrv/internal/vocab"
 
 	"github.com/labstack/echo/v4"
@@ -15,6 +16,7 @@ type VacabService struct {
 	port        string
 	vocabClient vocab.ApiNinjas
 	cache       cache.RedisCache
+	metr        monitor.PromMetrics
 }
 
 type DefinitionResponse struct {
@@ -22,11 +24,13 @@ type DefinitionResponse struct {
 	Definition  string `json:"Definition"`
 }
 
-func NewVacabService(port string, voc vocab.ApiNinjas, cachedb cache.RedisCache) *VacabService {
+func NewVacabService(port string, voc vocab.ApiNinjas,
+	cachedb cache.RedisCache, met monitor.PromMetrics) *VacabService {
 	return &VacabService{
 		port:        port,
 		vocabClient: voc,
 		cache:       cachedb,
+		metr:        met,
 	}
 }
 
@@ -75,6 +79,20 @@ func (vs VacabService) RandomWrdRequestHandler(e echo.Context) error {
 
 func (vs VacabService) Execute() error {
 	app := echo.New()
+	app.Use(
+		func(next echo.HandlerFunc) echo.HandlerFunc {
+			return func(c echo.Context) error {
+				if c.Path() == "/definition" {
+					println("+++++++++++")
+					vs.metr.DefinitionRequestCount.Inc()
+				} else if c.Path() == "/randword" {
+					println("+++++++++++")
+					vs.metr.RandwordRequestCount.Inc()
+				}
+				return next(c)
+			}
+		},
+	)
 	app.GET("/definition", vs.DefinitionRequestHandler)
 	app.GET("/randword", vs.RandomWrdRequestHandler)
 	return app.Start(":" + vs.port)

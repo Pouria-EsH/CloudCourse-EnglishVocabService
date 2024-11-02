@@ -14,7 +14,7 @@ type PromMetrics struct {
 	RandwordRequestCount   prometheus.Counter
 	DefinitionRequestCount prometheus.Counter
 	RedisCounter           prometheus.Counter
-	// apiLatency			prometheus.
+	ApiLatency             prometheus.Histogram
 }
 
 func NewPromMetrics() *PromMetrics {
@@ -37,12 +37,20 @@ func NewPromMetrics() *PromMetrics {
 				Help: "Total number of requests answered by redis",
 			},
 		),
+		ApiLatency: prometheus.NewHistogram(
+			prometheus.HistogramOpts{
+				Name:    "apiLatency",
+				Help:    "API request latency in seconds",
+				Buckets: prometheus.DefBuckets,
+			},
+		),
 	}
 
 	prometheus.MustRegister(
 		m.RandwordRequestCount,
 		m.DefinitionRequestCount,
 		m.RedisCounter,
+		m.ApiLatency,
 	)
 
 	return &m

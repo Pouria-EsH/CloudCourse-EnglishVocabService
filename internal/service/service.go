@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"vocabsrv/internal/cache"
 	"vocabsrv/internal/monitor"
@@ -60,7 +61,10 @@ func (vs VacabService) DefinitionRequestHandler(e echo.Context) error {
 	} else if err != nil {
 		log.Println("error at reading cache: ", err)
 		return err
+	} else {
+		vs.metr.RedisCounter.Inc()
 	}
+
 	return e.JSON(http.StatusOK, DefinitionResponse{
 		FetchStatus: fetchstatus,
 		Definition:  definition,
@@ -83,13 +87,14 @@ func (vs VacabService) Execute() error {
 		func(next echo.HandlerFunc) echo.HandlerFunc {
 			return func(c echo.Context) error {
 				if c.Path() == "/definition" {
-					println("+++++++++++")
 					vs.metr.DefinitionRequestCount.Inc()
 				} else if c.Path() == "/randword" {
-					println("+++++++++++")
 					vs.metr.RandwordRequestCount.Inc()
 				}
-				return next(c)
+				start := time.Now()
+				ret := next(c)
+				vs.metr.ApiLatency.Observe(time.Since(start).Seconds())
+				return ret
 			}
 		},
 	)

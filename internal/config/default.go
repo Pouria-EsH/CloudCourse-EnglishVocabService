@@ -14,5 +14,9 @@ func defaultConfig() Config {
 			ApiKey:            "",
 			ConnectionTimeout: time.Second,
 		},
+		Prom: PrometheusConfig{
+			Path: "/metrics",
+			Port: 9091,
+		},
 	}
 }

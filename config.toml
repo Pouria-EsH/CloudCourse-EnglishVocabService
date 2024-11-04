@@ -7,3 +7,7 @@ connection_timeout = "20s"
 address = "localhost:6379"
 connection_timeout = "5s"
 cache_timeout = "300s"
+
+[prometheus_metrics]
+path = "/metrics"
+port = 9091

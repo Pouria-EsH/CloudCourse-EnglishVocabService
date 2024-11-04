@@ -31,7 +31,7 @@ func main() {
 	)
 
 	metrs := monitor.NewPromMetrics()
-	go metrs.Expose("/metrics", 9091)
+	go metrs.Expose(cfg.Prom.Path, cfg.Prom.Port)
 
 	al := service.NewVacabService(cfg.Port, *ninjas_client, *redisdb, *metrs)
 
